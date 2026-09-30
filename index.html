@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="أكاديمية المبرمج المجهول — كورسات عربية في الأمن السيبراني والاختراق الأخلاقي">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23060a0f%22/%3E%3Ctext x=%2216%22 y=%2221%22 font-family=%22monospace%22 font-size=%2214%22 fill=%22%2322e3ff%22 text-anchor=%22middle%22%3E%3E_%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<title>أكاديمية المبرمج المجهول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=Readex+Pro:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky bar → terminal hero with live stats → filter rail → course grid → slide-in admin console. Single committed dark "SOC screen" look. */
+:root{
+  --bg:#060a0f; --bg2:#0a1118; --panel:#0e1720; --line:#1c2b38; --line2:#27394a;
+  --fg:#dbe8f0; --muted:#8398a8; --dim:#5b6f7e;
+  --cyan:#22e3ff; --mag:#ff3fa4; --lime:#8dff5a; --amber:#ffb547; --red:#ff5a6a;
+  --f-display:"Reem Kufi","Readex Pro",Tahoma,sans-serif;
+  --f-body:"Readex Pro",Tahoma,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:10px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--f-body);font-size:15px;line-height:1.7}
+a{color:var(--cyan)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:16px}
+.mono{font-family:var(--f-mono)}
+.bgfx{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+   radial-gradient(900px 500px at 85% -10%, color-mix(in srgb,var(--cyan) 14%,transparent), transparent 70%),
+   radial-gradient(700px 420px at 0% 30%, color-mix(in srgb,var(--mag) 9%,transparent), transparent 70%),
+   linear-gradient(var(--bg),var(--bg));}
+.bgfx::after{content:"";position:absolute;inset:0;opacity:.35;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:linear-gradient(to bottom,#000 0,transparent 70%)}
+main,header,footer{position:relative;z-index:1}
+
+/* bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:14px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg);margin-inline-end:auto}
+.brand .mark{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--f-mono);font-weight:600;font-size:13px;box-shadow:0 0 18px color-mix(in srgb,var(--cyan) 35%,transparent) inset}
+.brand b{font-family:var(--f-display);font-size:18px;font-weight:700;display:block;line-height:1.2}
+.brand small{display:block;color:var(--muted);font-size:11px;font-family:var(--f-mono);letter-spacing:.06em}
+.nav{display:flex;gap:4px}
+.nav a{color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:8px;font-size:14px}
+.nav a:hover{color:var(--fg);background:var(--panel)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--panel);padding:9px 16px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;color:var(--fg);transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--cyan)}
+.btn.pri{background:var(--cyan);color:#021018;border-color:var(--cyan);font-weight:600}
+.btn.pri:hover{background:color-mix(in srgb,var(--cyan) 85%,#fff)}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:color-mix(in srgb,var(--red) 60%,transparent);color:var(--red);background:transparent}
+.btn.danger.armed{background:var(--red);color:#fff}
+.btn.sm{padding:6px 11px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:progress}
+@media (max-width:720px){.nav{display:none}.brand small{display:none}}
+
+/* hero */
+.hero{padding-block:56px 28px;display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.hero h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5.4vw,60px);line-height:1.15;margin:14px 0 14px;text-wrap:balance}
+.hero h1 em{font-style:normal;color:var(--cyan);text-shadow:0 0 24px color-mix(in srgb,var(--cyan) 50%,transparent)}
+.hero p.lead{color:var(--muted);font-size:17px;max-width:54ch;margin:0 0 22px}
+.hero .cta{display:flex;gap:10px;flex-wrap:wrap}
+.term{border:1px solid var(--line2);border-radius:12px;background:color-mix(in srgb,var(--bg2) 92%,transparent);overflow:hidden;box-shadow:0 20px 60px -30px color-mix(in srgb,var(--cyan) 45%,transparent)}
+.term .tb{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.term .tb i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.term .tb i:nth-child(1){background:var(--red)}.term .tb i:nth-child(2){background:var(--amber)}.term .tb i:nth-child(3){background:var(--lime)}
+.term pre{margin:0;padding:16px 16px 18px;font-family:var(--f-mono);font-size:13px;line-height:1.85;direction:ltr;text-align:left;white-space:pre-wrap;color:var(--muted);overflow-x:auto}
+.term .p{color:var(--lime)}.term .c{color:var(--fg)}.term .k{color:var(--cyan)}.term .m{color:var(--mag)}
+.caret{display:inline-block;width:8px;height:15px;background:var(--cyan);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-block:8px 44px}
+.stat{background:var(--bg2);padding:16px 18px}
+.stat b{display:block;font-family:var(--f-mono);font-size:26px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+@media (max-width:860px){.hero{grid-template-columns:1fr;padding-block:36px 20px}.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* catalog */
+.sec-h{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.sec-h h2{font-family:var(--f-display);font-size:28px;margin:0}
+.sec-h p{margin:0;color:var(--muted)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding-inline:12px}
+.search input{flex:1;min-width:0;background:none;border:0;padding:10px 0;outline:none}
+.search span{color:var(--dim);font-family:var(--f-mono)}
+select.inp,.inp{background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:9px 12px;outline:none;width:100%}
+select.inp{width:auto}
+.inp:focus{border-color:var(--cyan)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:5px 13px;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan);background:color-mix(in srgb,var(--cyan) 10%,transparent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;cursor:pointer;text-align:start;padding:0;transition:transform .18s,border-color .18s}
+.card:hover{transform:translateY(-3px);border-color:var(--c,var(--cyan))}
+.cover{position:relative;height:128px;display:flex;align-items:flex-end;justify-content:space-between;padding:14px 16px;
+  background:
+   repeating-linear-gradient(0deg,transparent 0 11px,color-mix(in srgb,var(--c) 10%,transparent) 11px 12px),
+   linear-gradient(135deg,color-mix(in srgb,var(--c) 30%,var(--bg2)),var(--bg2) 75%);
+  border-bottom:1px solid var(--line)}
+.cover .glyph{font-family:var(--f-mono);font-weight:600;font-size:34px;color:var(--c);direction:ltr;text-shadow:0 0 20px color-mix(in srgb,var(--c) 60%,transparent)}
+.badge{font-size:11px;font-family:var(--f-mono);padding:2px 8px;border-radius:6px;border:1px solid var(--line2);color:var(--muted);background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card .cat{font-size:12px;color:var(--c);font-weight:500}
+.card h3{font-family:var(--f-display);font-size:19px;line-height:1.35;margin:0;font-weight:700}
+.card p{margin:0;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+.meta b{color:var(--fg);font-weight:500;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.lvl{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid}
+.lvl.l1{color:var(--lime);border-color:color-mix(in srgb,var(--lime) 45%,transparent)}
+.lvl.l2{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)}
+.lvl.l3{color:var(--mag);border-color:color-mix(in srgb,var(--mag) 45%,transparent)}
+.price{font-weight:600}.price.free{color:var(--lime)}
+.empty{border:1px dashed var(--line2);border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-family:var(--f-display);font-size:20px;margin-bottom:6px}
+
+/* tracks */
+.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-block:18px 60px}
+.track{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--bg2)}
+.track .n{font-family:var(--f-mono);color:var(--dim);font-size:12px}
+.track h3{font-family:var(--f-display);margin:6px 0 8px;font-size:20px}
+.track p{margin:0;color:var(--muted);font-size:14px}
+.track ol{margin:12px 0 0;padding-inline-start:18px;color:var(--fg);font-size:14px}
+@media (max-width:860px){.tracks{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--line);padding-block:26px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* overlay / modal */
+.ov{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,#000 70%,transparent);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 40px}
+.modal{width:min(820px,100%);background:var(--bg2);border:1px solid var(--line2);border-radius:16px;overflow:hidden}
+.modal .cover{height:170px}
+.modal .inner{padding:22px 24px 26px}
+.modal h2{font-family:var(--f-display);font-size:28px;margin:6px 0 10px;line-height:1.3}
+.x{position:absolute;top:12px;inset-inline-start:12px;width:36px;height:36px;border-radius:9px;border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 70%,transparent);cursor:pointer;font-size:18px;line-height:1}
+.desc{color:var(--fg);white-space:pre-wrap;margin:0 0 18px;max-width:68ch}
+.lessons{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lessons li{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line)}
+.lessons li:first-child{border-top:0}
+.lessons .no{font-family:var(--f-mono);color:var(--dim);font-size:12px;width:26px;flex:none}
+.lessons .t{flex:1;min-width:0}
+.lessons .d{font-family:var(--f-mono);color:var(--muted);font-size:12px}
+.video{margin-top:14px;aspect-ratio:16/9;max-width:100%;width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#000}
+.video iframe{width:100%;height:100%;border:0}
+.buy{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px;padding:14px 16px;border:1px solid var(--line2);border-radius:12px;background:var(--panel)}
+
+/* admin drawer */
+.drawer{position:fixed;inset-block:0;inset-inline-end:0;width:min(620px,100%);z-index:60;background:var(--bg2);border-inline-start:1px solid var(--line2);display:flex;flex-direction:column;box-shadow:-30px 0 60px -20px #000}
+.drawer .dh{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;border-bottom:1px solid var(--line)}
+.drawer .dh h3{margin:0;font-family:var(--f-display);font-size:20px;margin-inline-end:auto}
+.drawer .db{flex:1;overflow-y:auto;padding:18px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px)}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.fld label{font-size:13px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+textarea.inp{min-height:110px;resize:vertical}
+.adm-list{display:flex;flex-direction:column;gap:8px}
+.adm-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.adm-item .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.les-row{display:grid;grid-template-columns:1fr 80px 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+@media (max-width:520px){.les-row{grid-template-columns:1fr 70px;}.les-row .u{grid-column:1/2}}
+.note{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel);margin-bottom:14px}
+.note code{font-family:var(--f-mono);color:var(--cyan);font-size:12px}
+.err{color:var(--red);font-size:13px;min-height:1em}
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);inset-inline-start:50%;transform:translateX(50%);z-index:80;background:var(--panel);border:1px solid var(--cyan);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+  <div class="bgfx"></div>
+  <header class="bar">
+    <div class="wrap">
+      <a class="brand" href="#top"><span class="mark">&gt;_</span><span><b id="brandName">المبرمج المجهول</b><small>CYBER ACADEMY</small></span></a>
+      <nav class="nav"><a href="#courses">الكورسات</a><a href="#tracks">المسارات</a><a href="#about">عن الأكاديمية</a></nav>
+      <button class="btn sm" id="adminBtn" type="button">⚙ لوحة التحكم</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="wrap hero">
+      <div>
+        <div class="eyebrow">root@academy ~ online</div>
+        <h1>تعلّم <em>الأمن السيبراني</em> من الصفر إلى الاحتراف</h1>
+        <p class="lead">كورسات عربية عملية في اختبار الاختراق، الشبكات، لينكس، حماية الحسابات وتحليل البرمجيات الخبيثة. كل درس فيه تطبيق حقيقي على مختبر آمن.</p>
+        <div class="cta"><a class="btn pri" href="#courses">تصفّح الكورسات</a><a class="btn ghost" id="heroContact" href="#about">تواصل معنا</a></div>
+      </div>
+      <div class="term" aria-hidden="true">
+        <div class="tb"><i></i><i></i><i></i></div>
+<pre><span class="p">anon@academy:~$</span> <span class="c">whoami</span>
+المبرمج المجهول
+<span class="p">anon@academy:~$</span> <span class="c">nmap -sV skills.local</span>
+PORT     STATE  SERVICE
+22/tcp   <span class="k">open</span>   linux-basics
+80/tcp   <span class="k">open</span>   web-pentest
+443/tcp  <span class="k">open</span>   account-security
+4444/tcp <span class="m">filtered</span> malware-analysis
+<span class="p">anon@academy:~$</span> <span class="c">./start_learning</span> <span class="caret"></span></pre>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <section class="wrap" id="courses">
+      <div class="sec-h">
+        <div><h2>الكورسات</h2><p id="countLine">جاري تحميل الكورسات…</p></div>
+      </div>
+      <div class="filters">
+        <label class="search"><span>⌕</span><input id="q" type="search" placeholder="ابحث عن كورس، أداة، موضوع…" aria-label="بحث"></label>
+        <select class="inp" id="lvlSel" aria-label="المستوى">
+          <option value="">كل المستويات</option><option value="1">مبتدئ</option><option value="2">متوسط</option><option value="3">متقدم</option>
+        </select>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <section class="wrap" id="tracks">
+      <div class="sec-h" style="margin-top:64px"><div><h2>المسارات التعليمية</h2><p>رتّب تعلمك حسب هدفك.</p></div></div>
+      <div class="tracks">
+        <div class="track"><div class="n mono">TRACK-01</div><h3>المسار الأحمر · الهجوم</h3><p>لمن يريد يصير مختبر اختراق.</p><ol><li>لينكس والشبكات</li><li>اختبار اختراق الويب</li><li>استغلال الأنظمة</li></ol></div>
+        <div class="track"><div class="n mono">TRACK-02</div><h3>المسار الأزرق · الدفاع</h3><p>مراقبة، كشف، واستجابة للحوادث.</p><ol><li>أساسيات الأمن</li><li>تحليل السجلات وSOC</li><li>تحليل البرمجيات الخبيثة</li></ol></div>
+        <div class="track"><div class="n mono">TRACK-03</div><h3>الحماية الشخصية</h3><p>احمِ حساباتك وأجهزتك وبياناتك.</p><ol><li>حماية الحسابات و2FA</li><li>كشف التصيّد الاحتيالي</li><li>الخصوصية على السوشيال ميديا</li></ol></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="about">
+    <div class="wrap">
+      <span>© <span id="yr"></span> أكاديمية <span id="brandFoot">المبرمج المجهول</span> — المحتوى تعليمي لأغراض الاختراق الأخلاقي فقط.</span>
+      <span id="footContact"></span>
+    </div>
+  </footer>
+
+  <div id="modalHost"></div>
+  <div id="drawerHost"></div>
+  <div id="toastHost"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+document.documentElement.setAttribute("dir","rtl");
+document.documentElement.setAttribute("lang","ar");
+
+const CATS = {
+  basics:   {name:"أساسيات",            glyph:">_",   c:"#22e3ff"},
+  web:      {name:"اختراق الويب",       glyph:"</>",  c:"#ff3fa4"},
+  network:  {name:"الشبكات",            glyph:"::1",  c:"#7c8cff"},
+  linux:    {name:"لينكس",              glyph:"$ ~",  c:"#8dff5a"},
+  accounts: {name:"حماية الحسابات",     glyph:"2FA",  c:"#ffb547"},
+  malware:  {name:"البرمجيات الخبيثة",  glyph:"0xDE", c:"#ff5a6a"},
+  defense:  {name:"الدفاع وSOC",        glyph:"SOC",  c:"#35f0c0"},
+  forensics:{name:"التحقيق الجنائي",    glyph:"dd",   c:"#c58bff"}
+};
+const LVL = {1:"مبتدئ",2:"متوسط",3:"متقدم"};
+
+const S = {
+  mode:"loading",        // loading | claude | github
+  courses:[], settings:{brand:"المبرمج المجهول", contact:"", contactLabel:"تواصل معي"},
+  isAdmin:false, db:null, gh:null, loaded:false,
+  filter:{q:"",lvl:"",cat:""}
+};
+
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const safeUrl = u => /^https?:\/\//i.test(String(u||"").trim()) ? String(u).trim() : "";
+const lsGet = k => { try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } };
+const lsSet = (k,v) => { try{ v==null ? localStorage.removeItem(k) : localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+const mins = c => (c.lessons||[]).reduce((a,l)=>a+(+l.min||0),0);
+const fmtDur = m => m>=60 ? (Math.floor(m/60)+" س "+(m%60? (m%60)+" د":"")) : (m+" د");
+const sortCourses = a => a.slice().sort((x,y)=>(+x.order||0)-(+y.order||0) || String(x.createdAt||"").localeCompare(String(y.createdAt||"")));
+
+function toast(msg){
+  const h=$("#toastHost"); h.innerHTML='<div class="toast" role="status">'+esc(msg)+'</div>';
+  clearTimeout(toast.t); toast.t=setTimeout(()=>{h.innerHTML=""},3200);
+}
+
+/* ---------- rendering ---------- */
+function renderStats(){
+  const cs=S.courses, les=cs.reduce((a,c)=>a+(c.lessons||[]).length,0), m=cs.reduce((a,c)=>a+mins(c),0);
+  const free=cs.filter(c=>isFree(c.price)).length;
+  $("#stats").innerHTML=[
+    [cs.length,"كورس متاح"],[les,"درس"],[Math.round(m/60),"ساعة محتوى"],[free,"كورس مجاني"]
+  ].map(([n,l])=>'<div class="stat"><b>'+n+'</b><span>'+l+'</span></div>').join("");
+}
+function isFree(p){ return /^(0|مجاني|مجانا|مجاناً|free)$/i.test(String(p||"").trim()); }
+function priceHtml(p){
+  if(isFree(p)) return '<span class="price free">مجاني</span>';
+  const t=String(p||"").trim(); return '<span class="price">'+esc(t||"السعر بالخاص")+'</span>';
+}
+function renderChips(){
+  const used=new Set(S.courses.map(c=>c.category));
+  const keys=Object.keys(CATS).filter(k=>used.has(k));
+  $("#chips").innerHTML=['<button class="chip" type="button" data-cat="" aria-pressed="'+(!S.filter.cat)+'">الكل</button>']
+    .concat(keys.map(k=>'<button class="chip" type="button" data-cat="'+k+'" aria-pressed="'+(S.filter.cat===k)+'">'+CATS[k].name+'</button>')).join("");
+}
+function coverHtml(c,big){
+  const cat=CATS[c.category]||CATS.basics;
+  return '<div class="cover" style="--c:'+cat.c+'"><span class="glyph">'+esc(cat.glyph)+'</span>'+
+    '<span style="display:flex;gap:6px">'+(c.sample?'<span class="badge">نموذج</span>':'')+'<span class="lvl l'+(c.level||1)+'">'+LVL[c.level||1]+'</span></span></div>';
+}
+function renderGrid(){
+  const f=S.filter, q=f.q.trim().toLowerCase();
+  const list=sortCourses(S.courses).filter(c=>
+    (!f.cat||c.category===f.cat) && (!f.lvl||String(c.level)===f.lvl) &&
+    (!q || [c.title,c.summary,c.description,(CATS[c.category]||{}).name,(c.lessons||[]).map(l=>l.title).join(" ")].join(" ").toLowerCase().includes(q)));
+  $("#countLine").textContent = !S.loaded ? "جاري تحميل الكورسات…" : (S.courses.length ? ("عدد الكورسات: "+S.courses.length) : "");
+  if(!S.loaded){ $("#grid").innerHTML='<div class="empty" style="grid-column:1/-1"><b>جاري الاتصال…</b>نحمّل قائمة الكورسات.</div>'; return; }
+  if(!S.courses.length){
+    $("#grid").innerHTML='<div class="empty" style="grid-column:1/-1"><b>ماكو كورسات بعد</b>'+(S.isAdmin?'افتح <b style="display:inline;font-size:inherit">لوحة التحكم</b> وأضف أول كورس.':'الكورسات رح تنزل قريباً، تابعنا.')+'</div>'; return;
+  }
+  if(!list.length){ $("#grid").innerHTML='<div class="empty" style="grid-column:1/-1"><b>ماكو نتائج</b>جرّب كلمة ثانية أو شيل الفلتر.</div>'; return; }
+  $("#grid").innerHTML=list.map(c=>{
+    const cat=CATS[c.category]||CATS.basics;
+    return '<button type="button" class="card" data-open="'+esc(c.id)+'" style="--c:'+cat.c+'">'+coverHtml(c)+
+      '<div class="body"><span class="cat">'+cat.name+'</span><h3>'+esc(c.title)+'</h3><p>'+esc(c.summary)+'</p>'+
+      '<div class="meta"><span><b>'+(c.lessons||[]).length+'</b> درس</span><span><b>'+fmtDur(mins(c))+'</b></span>'+
+      (c.instructor?'<span>'+esc(c.instructor)+'</span>':'')+'<span style="margin-inline-start:auto">'+priceHtml(c.price)+'</span></div></div></button>';
+  }).join("");
+}
+function renderSettings(){
+  const s=S.settings;
+  $("#brandName").textContent=s.brand||"المبرمج المجهول";
+  $("#brandFoot").textContent=s.brand||"المبرمج المجهول";
+  const u=safeUrl(s.contact);
+  const hc=$("#heroContact");
+  if(u){ hc.href=u; hc.target="_blank"; hc.rel="noopener"; $("#footContact").innerHTML='<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(s.contactLabel||"تواصل معي")+'</a>'; }
+  else { hc.href="#about"; hc.removeAttribute("target"); $("#footContact").textContent=""; }
+}
+function render(){ renderStats(); renderChips(); renderGrid(); renderSettings(); if(drawerOpen) renderDrawer(); }
+
+/* ---------- course modal ---------- */
+function ytId(u){ const m=String(u||"").match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m?m[1]:""; }
+function openCourse(id, lessonIdx){
+  const c=S.courses.find(x=>x.id===id); if(!c) return;
+  const cat=CATS[c.category]||CATS.basics, u=safeUrl(S.settings.contact);
+  const ls=c.lessons||[];
+  let player="";
+  if(lessonIdx!=null && ls[lessonIdx]){
+    const l=ls[lessonIdx], y=ytId(l.url);
+    player = (y && S.mode==="github")
+      ? '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/'+y+'" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen title="'+esc(l.title)+'"></iframe></div>'
+      : (safeUrl(l.url)?'<p style="margin-top:12px"><a class="btn pri sm" href="'+esc(safeUrl(l.url))+'" target="_blank" rel="noopener">▶ افتح الدرس: '+esc(l.title)+'</a></p>':'');
+  }
+  $("#modalHost").innerHTML='<div class="ov" data-close><div class="modal" role="dialog" aria-modal="true" aria-label="'+esc(c.title)+'" style="position:relative">'+
+    coverHtml(c,true)+'<button class="x" type="button" data-close aria-label="إغلاق">×</button>'+
+    '<div class="inner"><span class="cat" style="color:'+cat.c+';font-size:13px">'+cat.name+'</span><h2>'+esc(c.title)+'</h2>'+
+    '<div class="meta" style="border:0;padding:0;margin-bottom:16px"><span><b>'+ls.length+'</b> درس</span><span><b>'+fmtDur(mins(c))+'</b></span>'+(c.instructor?'<span>المدرّب: '+esc(c.instructor)+'</span>':'')+'</div>'+
+    '<p class="desc">'+esc(c.description||c.summary)+'</p>'+
+    (ls.length?'<h3 style="font-family:var(--f-display);margin:0 0 10px">محتوى الكورس</h3><ol class="lessons">'+ls.map((l,i)=>
+      '<li><span class="no">'+String(i+1).padStart(2,"0")+'</span><span class="t">'+esc(l.title)+'</span><span class="d">'+(+l.min||0)+' د</span>'+
+      (safeUrl(l.url)?'<button class="btn sm ghost" type="button" data-play="'+i+'">▶</button>':'<span class="d" title="مقفول">🔒</span>')+'</li>').join("")+'</ol>':'')+
+    player+
+    '<div class="buy"><div>'+priceHtml(c.price)+'<div style="font-size:13px;color:var(--muted)">للاشتراك والوصول الكامل تواصل ويانا</div></div>'+
+    (u?'<a class="btn pri" href="'+esc(u)+'" target="_blank" rel="noopener">اشترك الآن</a>':'<span style="color:var(--muted);font-size:13px">رابط التواصل يُضاف من لوحة التحكم</span>')+'</div>'+
+    '</div></div></div>';
+  const ov=$("#modalHost .ov");
+  ov.addEventListener("click",e=>{
+    if(e.target.closest("[data-play]")){ openCourse(id,+e.target.closest("[data-play]").dataset.play); return; }
+    if(e.target===ov || e.target.closest("button[data-close]")) $("#modalHost").innerHTML="";
+  });
+  $("#modalHost .x").focus();
+}
+
+/* ---------- storage: Claude artifact db ---------- */
+async function initClaude(){
+  if(!window.claude || typeof window.claude.use!=="function") return false;
+  let db=null; try{ db=await window.claude.use("db"); }catch(e){}
+  if(!db) return false;
+  S.mode="claude"; S.db=db;
+  try{ const user=await window.claude.use("user"); S.isAdmin = user ? !!(await user.canEdit()) : false; }catch(e){}
+  db.collection("courses").onSnapshot(snap=>{
+    S.courses=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id})); S.loaded=true; render();
+  },()=>{ S.loaded=true; render(); });
+  db.doc("site/settings").onSnapshot(s=>{ if(s.exists) S.settings=Object.assign({},S.settings,s.data()); render(); },()=>{});
+  return true;
+}
+
+/* ---------- storage: GitHub (courses.json in the repo) ---------- */
+const GH_KEY="cyberacademy.github";
+const b64e = s => btoa(unescape(encodeURIComponent(s)));
+const b64d = s => decodeURIComponent(escape(atob(String(s).replace(/\s/g,""))));
+function applyJson(j){
+  if(j && Array.isArray(j.courses)) S.courses=j.courses;
+  if(j && j.settings) S.settings=Object.assign({},S.settings,j.settings);
+}
+function guessRepo(){
+  const h=location.hostname, p=location.pathname.split("/").filter(Boolean)[0];
+  if(/\.github\.io$/.test(h)){ const o=h.split(".")[0]; return o+"/"+(p && !/\.html?$/.test(p) ? p : h); }
+  return "";
+}
+async function gh(path,opts){
+  const g=S.gh;
+  const r=await fetch("https://api.github.com/repos/"+g.repo+path,Object.assign({},opts,{headers:{"Authorization":"Bearer "+g.token,"Accept":"application/vnd.github+json"}}));
+  if(!r.ok){ const e=new Error("GitHub "+r.status); e.status=r.status; throw e; }
+  return r.json();
+}
+async function ghPull(){
+  try{ const j=await gh("/contents/courses.json?ref="+encodeURIComponent(S.gh.branch)+"&t="+Date.now()); S.gh.sha=j.sha; applyJson(JSON.parse(b64d(j.content))); }
+  catch(e){ if(e.status===404){ S.gh.sha=null; } else throw e; }
+}
+async function ghPush(msg, mutate){
+  for(let attempt=0; attempt<2; attempt++){
+    mutate();
+    const body={message:msg, branch:S.gh.branch, content:b64e(JSON.stringify({settings:S.settings,courses:S.courses},null,2)+"\n")};
+    if(S.gh.sha) body.sha=S.gh.sha;
+    try{ const j=await gh("/contents/courses.json",{method:"PUT",body:JSON.stringify(body)}); S.gh.sha=j.content.sha; return; }
+    catch(e){ if((e.status===409||e.status===422) && attempt===0){ await ghPull(); continue; } throw e; }
+  }
+}
+async function ghConnect(repo,token){
+  S.gh={repo:repo.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"").replace(/\/$/,""), token:token.trim(), branch:"main", sha:null};
+  const info=await gh("");
+  if(!info.permissions || !info.permissions.push){ S.gh=null; throw new Error("noperm"); }
+  S.gh.branch=info.default_branch||"main";
+  await ghPull(); S.isAdmin=true; lsSet(GH_KEY,{repo:S.gh.repo,token:S.gh.token});
+}
+async function initGithub(){
+  S.mode="github";
+  try{ const r=await fetch("courses.json?v="+Date.now(),{cache:"no-store"}); if(r.ok) applyJson(await r.json()); }catch(e){}
+  const saved=lsGet(GH_KEY);
+  if(saved && saved.repo && saved.token){ try{ await ghConnect(saved.repo,saved.token); }catch(e){ S.gh=null; S.isAdmin=false; } }
+  S.loaded=true; render();
+}
+
+/* ---------- save helpers (both modes) ---------- */
+async function saveCourse(c){
+  if(S.mode==="claude"){ const {id,...data}=c; await S.db.collection("courses").doc(id).set(data); return; }
+  await ghPush((S.courses.some(x=>x.id===c.id)?"تعديل كورس: ":"إضافة كورس: ")+c.title, ()=>{
+    const i=S.courses.findIndex(x=>x.id===c.id); if(i>=0) S.courses[i]=c; else S.courses.push(c);
+  });
+  render();
+}
+async function deleteCourse(id){
+  if(S.mode==="claude"){ await S.db.collection("courses").doc(id).delete(); return; }
+  const t=(S.courses.find(x=>x.id===id)||{}).title||id;
+  await ghPush("حذف كورس: "+t, ()=>{ S.courses=S.courses.filter(x=>x.id!==id); }); render();
+}
+async function saveSettings(s){
+  if(S.mode==="claude"){ await S.db.doc("site/settings").set(s); return; }
+  await ghPush("تحديث إعدادات الموقع", ()=>{ S.settings=Object.assign({},S.settings,s); }); render();
+}
+
+/* ---------- admin drawer ---------- */
+let drawerOpen=false, tab="list", editing=null, armed=null;
+function openDrawer(){ drawerOpen=true; tab="list"; editing=null; renderDrawer(); }
+function closeDrawer(){ drawerOpen=false; $("#drawerHost").innerHTML=""; }
+function blankCourse(){ return {id:uid(),title:"",category:"basics",level:1,summary:"",description:"",price:"",instructor:S.settings.brand||"",order:S.courses.length+1,createdAt:new Date().toISOString(),lessons:[{title:"",min:10,url:""}]}; }
+
+function loginHtml(){
+  if(S.mode==="claude") return '<div class="note">لوحة التحكم متاحة فقط لصاحب الموقع. الزوار يشوفون الكورسات بس.</div>';
+  return '<div class="note">سجّل دخولك بـ <b>GitHub</b> حتى تعدّل الكورسات. التعديلات تنحفظ مباشرة بملف <code>courses.json</code> داخل الريبو وتظهر للزوار خلال دقيقة تقريباً.<br><br>'+
+    'تحتاج <b>Fine-grained token</b> من <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">إعدادات GitHub</a>: اختار الريبو فقط، وبالصلاحيات فعّل <code>Contents: Read and write</code>. التوكن ينحفظ بمتصفحك فقط.</div>'+
+    '<form id="loginF"><div class="fld"><label for="lgRepo">الريبو (owner/repo)</label><input class="inp mono" id="lgRepo" dir="ltr" required value="'+esc(guessRepo())+'" placeholder="username/cyber-academy"></div>'+
+    '<div class="fld"><label for="lgTok">التوكن</label><input class="inp mono" id="lgTok" dir="ltr" type="password" required placeholder="github_pat_…"></div>'+
+    '<p class="err" id="lgErr"></p><button class="btn pri" type="submit">دخول</button></form>';
+}
+function listHtml(){
+  const cs=sortCourses(S.courses);
+  return '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button class="btn pri" type="button" data-act="new">+ كورس جديد</button></div>'+
+   (cs.length?'<div class="adm-list">'+cs.map(c=>'<div class="adm-item"><span class="lvl l'+(c.level||1)+'">'+LVL[c.level||1]+'</span><span class="t">'+esc(c.title)+(c.sample?' <span class="badge">نموذج</span>':'')+'</span>'+
+     '<button class="btn sm" type="button" data-act="edit" data-id="'+esc(c.id)+'">تعديل</button>'+
+     '<button class="btn sm danger'+(armed===c.id?' armed':'')+'" type="button" data-act="del" data-id="'+esc(c.id)+'">'+(armed===c.id?'تأكيد الحذف':'حذف')+'</button></div>').join("")+'</div>'
+     :'<div class="empty"><b>ماكو كورسات</b>اضغط «كورس جديد» وابدأ.</div>');
+}
+function editHtml(){
+  const c=editing, catOpts=Object.entries(CATS).map(([k,v])=>'<option value="'+k+'"'+(c.category===k?' selected':'')+'>'+v.name+'</option>').join("");
+  return '<form id="courseF">'+
+   '<div class="fld"><label for="cTitle">عنوان الكورس</label><input class="inp" id="cTitle" required value="'+esc(c.title)+'" placeholder="مثال: اختبار اختراق تطبيقات الويب"></div>'+
+   '<div class="row2"><div class="fld"><label for="cCat">القسم</label><select class="inp" id="cCat" style="width:100%">'+catOpts+'</select></div>'+
+   '<div class="fld"><label for="cLvl">المستوى</label><select class="inp" id="cLvl" style="width:100%">'+[1,2,3].map(n=>'<option value="'+n+'"'+(+c.level===n?' selected':'')+'>'+LVL[n]+'</option>').join("")+'</select></div></div>'+
+   '<div class="row2"><div class="fld"><label for="cPrice">السعر</label><input class="inp" id="cPrice" value="'+esc(c.price)+'" placeholder="مجاني / 25,000 د.ع / اتركه فارغ = بالخاص"></div>'+
+   '<div class="fld"><label for="cInst">المدرّب</label><input class="inp" id="cInst" value="'+esc(c.instructor)+'"></div></div>'+
+   '<div class="row2"><div class="fld"><label for="cOrder">الترتيب</label><input class="inp mono" id="cOrder" type="number" value="'+esc(c.order)+'"></div><div></div></div>'+
+   '<div class="fld"><label for="cSum">وصف قصير (يظهر بالبطاقة)</label><input class="inp" id="cSum" value="'+esc(c.summary)+'"></div>'+
+   '<div class="fld"><label for="cDesc">الوصف الكامل</label><textarea class="inp" id="cDesc">'+esc(c.description)+'</textarea></div>'+
+   '<h4 style="margin:18px 0 10px;font-family:var(--f-display)">الدروس</h4><p style="margin:-6px 0 10px;color:var(--muted);font-size:13px">العنوان · المدة بالدقائق · رابط الفيديو (يوتيوب أو أي رابط، اتركه فارغ حتى يبقى مقفول)</p>'+
+   '<div id="lesRows">'+(c.lessons||[]).map((l,i)=>lessonRow(l,i)).join("")+'</div>'+
+   '<button class="btn sm" type="button" data-act="addles">+ درس</button>'+
+   '<p class="err" id="cErr"></p>'+
+   '<div style="display:flex;gap:10px;margin-top:10px"><button class="btn pri" type="submit" id="cSave">حفظ الكورس</button><button class="btn ghost" type="button" data-act="back">رجوع</button></div></form>';
+}
+function lessonRow(l,i){
+  return '<div class="les-row" data-i="'+i+'"><input class="inp" id="lt'+i+'" placeholder="عنوان الدرس" value="'+esc(l.title)+'" aria-label="عنوان الدرس">'+
+   '<input class="inp mono" id="lm'+i+'" type="number" min="0" value="'+esc(l.min)+'" aria-label="المدة">'+
+   '<input class="inp mono u" id="lu'+i+'" dir="ltr" placeholder="https://youtu.be/…" value="'+esc(l.url)+'" aria-label="رابط">'+
+   '<button class="btn sm danger" type="button" data-act="rmles" data-i="'+i+'" aria-label="حذف الدرس">×</button></div>';
+}
+function readLessons(){ return [...document.querySelectorAll("#lesRows .les-row")].map(r=>{const i=r.dataset.i; return {title:$("#lt"+i).value.trim(),min:+$("#lm"+i).value||0,url:$("#lu"+i).value.trim()};}); }
+function settingsHtml(){
+  const s=S.settings;
+  return '<form id="setF"><div class="fld"><label for="sBrand">اسم الأكاديمية</label><input class="inp" id="sBrand" value="'+esc(s.brand)+'"></div>'+
+   '<div class="fld"><label for="sContact">رابط التواصل / الاشتراك (تيليجرام، واتساب، انستا…)</label><input class="inp mono" id="sContact" dir="ltr" value="'+esc(s.contact)+'" placeholder="https://t.me/username"></div>'+
+   '<div class="fld"><label for="sLabel">نص زر التواصل</label><input class="inp" id="sLabel" value="'+esc(s.contactLabel)+'"></div>'+
+   '<p class="err" id="sErr"></p><button class="btn pri" type="submit">حفظ الإعدادات</button></form>'+
+   (S.mode==="github"?'<hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><p style="color:var(--muted);font-size:13px">متصل بـ <span class="mono" dir="ltr">'+esc(S.gh.repo)+'</span></p><button class="btn danger" type="button" data-act="logout">تسجيل خروج</button>':'');
+}
+function renderDrawer(){
+  let body;
+  if(!S.isAdmin) body=loginHtml();
+  else if(editing) body=editHtml();
+  else body='<div class="tabs"><button class="chip" type="button" data-tab="list" aria-pressed="'+(tab==="list")+'">الكورسات</button><button class="chip" type="button" data-tab="settings" aria-pressed="'+(tab==="settings")+'">الإعدادات</button></div>'+(tab==="list"?listHtml():settingsHtml());
+  $("#drawerHost").innerHTML='<div class="ov" data-dclose style="padding:0"></div><aside class="drawer" aria-label="لوحة التحكم"><div class="dh"><h3>'+(editing?(S.courses.some(x=>x.id===editing.id)?"تعديل كورس":"كورس جديد"):"لوحة التحكم")+'</h3><button class="btn sm ghost" type="button" data-act="close">إغلاق</button></div><div class="db">'+body+'</div></aside>';
+}
+function syncEditingFromForm(){
+  if(!editing || !$("#courseF")) return;
+  Object.assign(editing,{title:$("#cTitle").value,category:$("#cCat").value,level:+$("#cLvl").value,price:$("#cPrice").value,instructor:$("#cInst").value,order:+$("#cOrder").value||0,summary:$("#cSum").value,description:$("#cDesc").value,lessons:readLessons()});
+}
+$("#drawerHost").addEventListener("click",async e=>{
+  if(e.target.matches("[data-dclose]")){ closeDrawer(); return; }
+  const tb=e.target.closest("[data-tab]"); if(tb){ tab=tb.dataset.tab; armed=null; renderDrawer(); return; }
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act;
+  if(a==="close") closeDrawer();
+  else if(a==="new"){ editing=blankCourse(); renderDrawer(); }
+  else if(a==="edit"){ const c=S.courses.find(x=>x.id===b.dataset.id); editing=JSON.parse(JSON.stringify(c)); if(!editing.lessons||!editing.lessons.length) editing.lessons=[{title:"",min:10,url:""}]; renderDrawer(); }
+  else if(a==="back"){ editing=null; renderDrawer(); }
+  else if(a==="addles"){ syncEditingFromForm(); editing.lessons.push({title:"",min:10,url:""}); renderDrawer(); const n=editing.lessons.length-1; $("#lt"+n)&&$("#lt"+n).focus(); }
+  else if(a==="rmles"){ syncEditingFromForm(); editing.lessons.splice(+b.dataset.i,1); renderDrawer(); }
+  else if(a==="del"){
+    const id=b.dataset.id;
+    if(armed!==id){ armed=id; renderDrawer(); setTimeout(()=>{ if(armed===id){armed=null; if(drawerOpen&&!editing) renderDrawer();} },4000); return; }
+    armed=null; b.disabled=true;
+    try{ await deleteCourse(id); toast("انحذف الكورس"); }catch(err){ toast(errMsg(err)); }
+    renderDrawer();
+  }
+  else if(a==="logout"){ lsSet(GH_KEY,null); S.gh=null; S.isAdmin=false; renderDrawer(); render(); toast("تم تسجيل الخروج"); }
+});
+function errMsg(e){
+  if(e && e.message==="noperm") return "هذا التوكن ما عنده صلاحية كتابة على الريبو. فعّل Contents: Read and write.";
+  if(e && e.status===401) return "التوكن غلط أو منتهي. سوّي توكن جديد.";
+  if(e && e.status===404) return "الريبو ما موجود أو التوكن ما يشمله. تأكد من اسم owner/repo.";
+  if(e && e.code) return "ما انحفظ: ليس لديك صلاحية التعديل.";
+  return "ما انحفظ. تأكد من الاتصال وجرّب مرة ثانية.";
+}
+$("#drawerHost").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.target, btn=f.querySelector("[type=submit]"); btn.disabled=true;
+  try{
+    if(f.id==="loginF"){
+      $("#lgErr").textContent="";
+      await ghConnect($("#lgRepo").value,$("#lgTok").value); render(); toast("أهلاً بيك، دخلت للوحة التحكم");
+    } else if(f.id==="courseF"){
+      syncEditingFromForm();
+      const c=Object.assign({},editing,{title:editing.title.trim(),lessons:editing.lessons.filter(l=>l.title)});
+      delete c.sample;
+      if(!c.title){ $("#cErr").textContent="اكتب عنوان الكورس."; btn.disabled=false; return; }
+      c.updatedAt=new Date().toISOString();
+      await saveCourse(c); editing=null; toast(S.mode==="github"?"انحفظ ✓ يظهر للزوار خلال دقيقة":"انحفظ الكورس ✓");
+    } else if(f.id==="setF"){
+      const s={brand:$("#sBrand").value.trim()||"المبرمج المجهول",contact:$("#sContact").value.trim(),contactLabel:$("#sLabel").value.trim()||"تواصل معي"};
+      if(s.contact && !safeUrl(s.contact)){ $("#sErr").textContent="الرابط لازم يبدي بـ https://"; btn.disabled=false; return; }
+      await saveSettings(s); toast("انحفظت الإعدادات ✓");
+    }
+    renderDrawer();
+  }catch(err){
+    const el=f.querySelector(".err"); if(el) el.textContent=errMsg(err); btn.disabled=false;
+  }
+});
+
+/* ---------- page events ---------- */
+$("#adminBtn").addEventListener("click",openDrawer);
+$("#grid").addEventListener("click",e=>{ const c=e.target.closest("[data-open]"); if(c) openCourse(c.dataset.open); });
+$("#chips").addEventListener("click",e=>{ const c=e.target.closest("[data-cat]"); if(!c) return; S.filter.cat=c.dataset.cat; renderChips(); renderGrid(); });
+$("#q").addEventListener("input",e=>{ S.filter.q=e.target.value; renderGrid(); });
+$("#lvlSel").addEventListener("change",e=>{ S.filter.lvl=e.target.value; renderGrid(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if($("#modalHost").innerHTML) $("#modalHost").innerHTML=""; else if(drawerOpen) closeDrawer(); } });
+$("#yr").textContent=new Date().getFullYear();
+
+render();
+(async function boot(){
+  if(!window.claude && !/github\.io$/.test(location.hostname)) await new Promise(r=>setTimeout(r,700));
+  const inClaude = !!(window.claude && typeof window.claude.use==="function");
+  if(inClaude && await initClaude()) return;
+  await initGithub();
+})();
+})();
+</script>
+
+</body>
+</html>
