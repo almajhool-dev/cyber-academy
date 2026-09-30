@@ -266,7 +266,7 @@ const CATS = {
 const LVL = {1:"مبتدئ",2:"متوسط",3:"متقدم"};
 
 const S = {
-  mode:"loading",        // loading | claude | github
+  mode:"loading",
   courses:[], settings:{brand:"المبرمج المجهول", contact:"", contactLabel:"تواصل معي"},
   isAdmin:false, db:null, gh:null, loaded:false,
   filter:{q:"",lvl:"",cat:""}
@@ -374,20 +374,6 @@ function openCourse(id, lessonIdx){
   $("#modalHost .x").focus();
 }
 
-/* ---------- storage: Claude artifact db ---------- */
-async function initClaude(){
-  if(!window.claude || typeof window.claude.use!=="function") return false;
-  let db=null; try{ db=await window.claude.use("db"); }catch(e){}
-  if(!db) return false;
-  S.mode="claude"; S.db=db;
-  try{ const user=await window.claude.use("user"); S.isAdmin = user ? !!(await user.canEdit()) : false; }catch(e){}
-  db.collection("courses").onSnapshot(snap=>{
-    S.courses=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id})); S.loaded=true; render();
-  },()=>{ S.loaded=true; render(); });
-  db.doc("site/settings").onSnapshot(s=>{ if(s.exists) S.settings=Object.assign({},S.settings,s.data()); render(); },()=>{});
-  return true;
-}
-
 /* ---------- storage: GitHub (courses.json in the repo) ---------- */
 const GH_KEY="cyberacademy.github";
 const b64e = s => btoa(unescape(encodeURIComponent(s)));
@@ -437,19 +423,19 @@ async function initGithub(){
 
 /* ---------- save helpers (both modes) ---------- */
 async function saveCourse(c){
-  if(S.mode==="claude"){ const {id,...data}=c; await S.db.collection("courses").doc(id).set(data); return; }
+  if(S.mode==="live"){ const {id,...data}=c; await S.db.collection("courses").doc(id).set(data); return; }
   await ghPush((S.courses.some(x=>x.id===c.id)?"تعديل كورس: ":"إضافة كورس: ")+c.title, ()=>{
     const i=S.courses.findIndex(x=>x.id===c.id); if(i>=0) S.courses[i]=c; else S.courses.push(c);
   });
   render();
 }
 async function deleteCourse(id){
-  if(S.mode==="claude"){ await S.db.collection("courses").doc(id).delete(); return; }
+  if(S.mode==="live"){ await S.db.collection("courses").doc(id).delete(); return; }
   const t=(S.courses.find(x=>x.id===id)||{}).title||id;
   await ghPush("حذف كورس: "+t, ()=>{ S.courses=S.courses.filter(x=>x.id!==id); }); render();
 }
 async function saveSettings(s){
-  if(S.mode==="claude"){ await S.db.doc("site/settings").set(s); return; }
+  if(S.mode==="live"){ await S.db.doc("site/settings").set(s); return; }
   await ghPush("تحديث إعدادات الموقع", ()=>{ S.settings=Object.assign({},S.settings,s); }); render();
 }
 
@@ -460,7 +446,7 @@ function closeDrawer(){ drawerOpen=false; $("#drawerHost").innerHTML=""; }
 function blankCourse(){ return {id:uid(),title:"",category:"basics",level:1,summary:"",description:"",price:"",instructor:S.settings.brand||"",order:S.courses.length+1,createdAt:new Date().toISOString(),lessons:[{title:"",min:10,url:""}]}; }
 
 function loginHtml(){
-  if(S.mode==="claude") return '<div class="note">لوحة التحكم متاحة فقط لصاحب الموقع. الزوار يشوفون الكورسات بس.</div>';
+  if(S.mode==="live") return '<div class="note">لوحة التحكم متاحة فقط لصاحب الموقع. الزوار يشوفون الكورسات بس.</div>';
   return '<div class="note">سجّل دخولك بـ <b>GitHub</b> حتى تعدّل الكورسات. التعديلات تنحفظ مباشرة بملف <code>courses.json</code> داخل الريبو وتظهر للزوار خلال دقيقة تقريباً.<br><br>'+
     'تحتاج <b>Fine-grained token</b> من <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">إعدادات GitHub</a>: اختار الريبو فقط، وبالصلاحيات فعّل <code>Contents: Read and write</code>. التوكن ينحفظ بمتصفحك فقط.</div>'+
     '<form id="loginF"><div class="fld"><label for="lgRepo">الريبو (owner/repo)</label><input class="inp mono" id="lgRepo" dir="ltr" required value="'+esc(guessRepo())+'" placeholder="username/cyber-academy"></div>'+
@@ -581,9 +567,6 @@ $("#yr").textContent=new Date().getFullYear();
 
 render();
 (async function boot(){
-  if(!window.claude && !/github\.io$/.test(location.hostname)) await new Promise(r=>setTimeout(r,700));
-  const inClaude = !!(window.claude && typeof window.claude.use==="function");
-  if(inClaude && await initClaude()) return;
   await initGithub();
 })();
 })();
